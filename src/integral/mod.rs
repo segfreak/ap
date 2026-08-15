@@ -371,6 +371,52 @@ impl ApInt {
         self.limbs.iter().all(|&x| x == 0)
     }
 
+    // Returns `true` if all bits are set to 1.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ap::integral::ApInt;
+    ///
+    /// let x = ApInt::new(8, 0xff);
+    /// assert!(x.is_all_ones());
+    ///
+    /// let y = ApInt::new(8, 0xfe);
+    /// assert!(!y.is_all_ones());
+    /// ```
+    pub fn is_all_ones(&self) -> bool {
+        let full_limbs = self.width / LIMB_BITS;
+        for i in 0..full_limbs {
+            if self.limbs[i] != Limb::MAX {
+                return false;
+            }
+        }
+
+        let remaining_bits = self.width % LIMB_BITS;
+        if remaining_bits > 0 {
+            let mask = Self::mask(remaining_bits);
+            if self.limbs[full_limbs] != mask {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    /// Returns `true` if value is one.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ap::integral::ApInt;
+    ///
+    /// let x = ApInt::one(64);
+    /// assert!(x.is_one());
+    /// ```
+    pub fn is_one(&self) -> bool {
+        self.eq(&Self::one(self.width()))
+    }
+
     /// Adds two integers of the same width.
     ///
     /// # Panics
@@ -1265,6 +1311,135 @@ impl ApInt {
             result |= (self.limbs[1] as u128) << 64;
         }
         result
+    }
+
+    /// Returns the number of trailing zeros in the binary representation.
+    ///
+    /// Counts the number of consecutive zero bits starting from the least
+    /// significant bit (LSB).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ap::integral::ApInt;
+    ///
+    /// let x = ApInt::new(32, 0b1000);
+    /// assert_eq!(x.trailing_zeros(), 3);
+    ///
+    /// let y = ApInt::new(32, 0);
+    /// assert_eq!(y.trailing_zeros(), 32); // All bits are zero
+    /// ```
+    pub fn trailing_zeros(&self) -> usize {
+        if self.is_zero() {
+            return self.width;
+        }
+
+        for (i, &limb) in self.limbs.iter().enumerate() {
+            if limb != 0 {
+                return i * LIMB_BITS + limb.trailing_zeros() as usize;
+            }
+        }
+        self.width
+    }
+
+    /// Returns the number of trailing ones in the binary representation.
+    ///
+    /// Counts the number of consecutive one bits starting from the least
+    /// significant bit (LSB).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ap::integral::ApInt;
+    ///
+    /// let x = ApInt::new(32, 0b1111);
+    /// assert_eq!(x.trailing_ones(), 4);
+    ///
+    /// let y = ApInt::new(32, 0xffffffff);
+    /// assert_eq!(y.trailing_ones(), 32);
+    /// ```
+    pub fn trailing_ones(&self) -> usize {
+        self.not().trailing_zeros()
+    }
+
+    /// Returns the number of leading zeros in the binary representation.
+    ///
+    /// Counts the number of consecutive zero bits starting from the most
+    /// significant bit (MSB).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ap::integral::ApInt;
+    ///
+    /// let x = ApInt::new(32, 0b1000);
+    /// assert_eq!(x.leading_zeros(), 28);
+    ///
+    /// let y = ApInt::new(32, 0);
+    /// assert_eq!(y.leading_zeros(), 32);
+    /// ```
+    pub fn leading_zeros(&self) -> usize {
+        let last_limb = self.limbs.len() - 1;
+        let remaining_bits = self.width % LIMB_BITS;
+
+        for i in (0..=last_limb).rev() {
+            let limb = self.limbs[i];
+
+            if i == last_limb && remaining_bits != 0 {
+                let unused_bits = LIMB_BITS - remaining_bits;
+                let masked = limb & Self::mask(remaining_bits);
+
+                if masked != 0 {
+                    return i * LIMB_BITS + (masked.leading_zeros() as usize - unused_bits);
+                }
+            } else if limb != 0 {
+                return i * LIMB_BITS + limb.leading_zeros() as usize;
+            }
+        }
+
+        self.width
+    }
+
+    /// Returns the number of leading ones in the binary representation.
+    ///
+    /// Counts the number of consecutive one bits starting from the most
+    /// significant bit (MSB).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use ap::integral::ApInt;
+    ///
+    /// let x = ApInt::new(8, 0b11110000);
+    /// assert_eq!(x.leading_ones(), 4);
+    ///
+    /// let y = ApInt::new(8, 0xff);
+    /// assert_eq!(y.leading_ones(), 8);
+    /// ```
+    pub fn leading_ones(&self) -> usize {
+        let last_limb = self.limbs.len() - 1;
+        let remaining_bits = self.width % LIMB_BITS;
+
+        for i in (0..=last_limb).rev() {
+            let limb = self.limbs[i];
+
+            if i == last_limb && remaining_bits != 0 {
+                let mask = Self::mask(remaining_bits);
+                let masked = limb & mask;
+
+                if masked != mask {
+                    let inverted = (!masked) & mask;
+                    let leading_zeros =
+                        (inverted.leading_zeros() as usize) - (LIMB_BITS - remaining_bits);
+
+                    return i * LIMB_BITS + leading_zeros;
+                }
+            } else if limb != u64::MAX {
+                return i * LIMB_BITS + (!limb).leading_zeros() as usize;
+            }
+        }
+
+        self.width
     }
 }
 

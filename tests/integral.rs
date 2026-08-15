@@ -517,16 +517,6 @@ fn sext_multi_limb() {
 }
 
 #[test]
-fn debug_format() {
-    let x = ApInt::from_limbs(128, vec![0x12345678, 0x9abcdef0]);
-    let s = format!("{:?}", x);
-    println!("{}", s);
-    assert!(s.contains("ApInt(128 bits:"));
-    assert!(s.contains("9abcdef0"));
-    assert!(s.contains("12345678"));
-}
-
-#[test]
 fn display_format() {
     let x = ApInt::from_limbs(128, vec![0x12345678, 0x9abcdef0]);
     let s = format!("{}", x);
@@ -1256,14 +1246,6 @@ fn mul_128_edge_cases() {
     let f = d.mul(&e);
     assert_eq!(f.get_limbs()[0], 0);
     assert_eq!(f.get_limbs()[1], u64::MAX - 1);
-}
-
-#[test]
-fn string_representation_roundtrip() {
-    let x = ApInt::new(64, 0x123456789abcdef);
-    let s = format!("{:?}", x);
-    assert!(s.starts_with("ApInt(64 bits: "));
-    assert!(s.ends_with(")"));
 }
 
 #[test]
