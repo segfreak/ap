@@ -2562,3 +2562,72 @@ fn basic_test() {
     let sum = a + b;
     assert_eq!(sum.to_u32_lossy(), 150);
 }
+
+#[test]
+fn karatsuba_mul() {
+    let a_limbs: Vec<u64> = vec![
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+    ];
+
+    let b_limbs: Vec<u64> = vec![
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+    ];
+
+    let a = ApInt::from_limbs(1024, a_limbs);
+    let b = ApInt::from_limbs(1024, b_limbs);
+
+    let got = a * b;
+
+    let expected_limbs: Vec<u64> = vec![
+        0x236d88fe5618cf00,
+        0x58fab20783af1222,
+        0x8e87db10b1455544,
+        0xc4150419dedb9866,
+        0xf9a22d230c71db88,
+        0x2f2f562c3a081eaa,
+        0x64bc7f35679e61cd,
+        0x9a49a83e9534a4ef,
+        0xcfd6d147c2cae811,
+        0x0563fa50f0612b33,
+        0x3af1235a1df76e56,
+        0x707e4c634b8db178,
+        0xa60b756c7923f49a,
+        0xdb989e75a6ba37bc,
+        0x1125c77ed4507ade,
+        0x46b2f08801e6be01,
+    ];
+
+    let expected = ApInt::from_limbs(1024, expected_limbs);
+
+    assert_eq!(got, expected);
+}
