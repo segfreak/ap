@@ -1,0 +1,20 @@
+[package]
+name = "ap"
+version = "0.0.1"
+edition = "2024"
+authors = ["segfreak"]
+license = "MIT"
+description = "Fast fixed-width arbitrary-precision integers for Rust"
+repository = "https://github.com/segfreak/ap"
+readme = "README.md"
+keywords = ["integer", "bigint", "apint", "compiler"]
+categories = ["data-structures", "algorithms"]
+
+[features]
+default = ["smallvec"]
+serde = ["dep:serde"]
+smallvec = ["dep:smallvec"]
+
+[dependencies]
+serde = { version = "1.0.229", optional = true, features = ["derive"] }
+smallvec = { version = "1.15.2", optional = true, features = ["serde"] }
