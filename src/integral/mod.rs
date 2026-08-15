@@ -101,7 +101,7 @@ pub type Limbs = Vec<Limb>;
 /// assert!(neg.is_negative());
 /// assert!(neg.slt(&ApInt::new(8, 0)));
 /// ```
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ApInt {
     /// Bit width of the integer.
@@ -1265,22 +1265,6 @@ impl ApInt {
             result |= (self.limbs[1] as u128) << 64;
         }
         result
-    }
-}
-
-impl fmt::Debug for ApInt {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ApInt({} bits: ", self.width)?;
-
-        for (i, limb) in self.limbs.iter().enumerate().rev() {
-            if i == self.limbs.len() - 1 {
-                write!(f, "{:x}", limb)?;
-            } else {
-                write!(f, "_{:016x}", limb)?;
-            }
-        }
-
-        write!(f, ")")
     }
 }
 
