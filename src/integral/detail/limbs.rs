@@ -44,15 +44,15 @@ pub(super) fn sub_limbs(a: &mut Vec<Limb>, b: &[Limb]) {
 
     let mut borrow = 0u64;
 
-    for i in 0..a.len() {
-        let x = a[i];
+    for (i, item) in a.iter_mut().enumerate() {
+        let x = *item;
         let y = b.get(i).copied().unwrap_or(0);
 
         let (value, borrow_a) = x.overflowing_sub(y);
 
         let (value, borrow_b) = value.overflowing_sub(borrow);
 
-        a[i] = value;
+        *item = value;
 
         borrow = (borrow_a || borrow_b) as Limb;
     }
@@ -71,10 +71,10 @@ pub(super) fn add_shifted(out: &mut [Limb], value: &[Limb], shift: usize) {
 
     let mut carry = 0u64;
 
-    for i in 0..value.len() {
+    for (i, v) in value.iter().enumerate() {
         let index = i + shift;
 
-        let (x, carry_a) = out[index].overflowing_add(value[i]);
+        let (x, carry_a) = out[index].overflowing_add(*v);
 
         let (x, carry_b) = x.overflowing_add(carry);
 

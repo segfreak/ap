@@ -31,13 +31,13 @@ pub(super) fn schoolbook_mul_limbs(a: &[u64], b: &[u64]) -> Vec<u64> {
 
     let mut result = vec![0u64; a.len() + b.len()];
 
-    for i in 0..a.len() {
+    for (i, a_item) in a.iter().enumerate() {
         let mut carry = 0u64;
 
-        for j in 0..b.len() {
+        for (j, b_item) in b.iter().enumerate() {
             let index = i + j;
 
-            let product = a[i] as u128 * b[j] as u128;
+            let product = (*a_item as u128) * (*b_item as u128);
 
             let product_low = product as u64;
             let product_high = (product >> 64) as u64;
