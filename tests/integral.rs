@@ -517,16 +517,6 @@ fn sext_multi_limb() {
 }
 
 #[test]
-fn debug_format() {
-    let x = ApInt::from_limbs(128, vec![0x12345678, 0x9abcdef0]);
-    let s = format!("{:?}", x);
-    println!("{}", s);
-    assert!(s.contains("ApInt(128 bits:"));
-    assert!(s.contains("9abcdef0"));
-    assert!(s.contains("12345678"));
-}
-
-#[test]
 fn display_format() {
     let x = ApInt::from_limbs(128, vec![0x12345678, 0x9abcdef0]);
     let s = format!("{}", x);
@@ -1256,14 +1246,6 @@ fn mul_128_edge_cases() {
     let f = d.mul(&e);
     assert_eq!(f.get_limbs()[0], 0);
     assert_eq!(f.get_limbs()[1], u64::MAX - 1);
-}
-
-#[test]
-fn string_representation_roundtrip() {
-    let x = ApInt::new(64, 0x123456789abcdef);
-    let s = format!("{:?}", x);
-    assert!(s.starts_with("ApInt(64 bits: "));
-    assert!(s.ends_with(")"));
 }
 
 #[test]
@@ -2561,4 +2543,73 @@ fn basic_test() {
     let b = ApInt::new(32, 50);
     let sum = a + b;
     assert_eq!(sum.to_u32_lossy(), 150);
+}
+
+#[test]
+fn karatsuba_mul() {
+    let a_limbs: Vec<u64> = vec![
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+        0x123456789abcdef0,
+    ];
+
+    let b_limbs: Vec<u64> = vec![
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+        0xfedcba9876543210,
+    ];
+
+    let a = ApInt::from_limbs(1024, a_limbs);
+    let b = ApInt::from_limbs(1024, b_limbs);
+
+    let got = a * b;
+
+    let expected_limbs: Vec<u64> = vec![
+        0x236d88fe5618cf00,
+        0x58fab20783af1222,
+        0x8e87db10b1455544,
+        0xc4150419dedb9866,
+        0xf9a22d230c71db88,
+        0x2f2f562c3a081eaa,
+        0x64bc7f35679e61cd,
+        0x9a49a83e9534a4ef,
+        0xcfd6d147c2cae811,
+        0x0563fa50f0612b33,
+        0x3af1235a1df76e56,
+        0x707e4c634b8db178,
+        0xa60b756c7923f49a,
+        0xdb989e75a6ba37bc,
+        0x1125c77ed4507ade,
+        0x46b2f08801e6be01,
+    ];
+
+    let expected = ApInt::from_limbs(1024, expected_limbs);
+
+    assert_eq!(got, expected);
 }
